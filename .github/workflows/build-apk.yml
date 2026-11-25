@@ -2,6 +2,9 @@ name: Build APK artifact
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - 'arena/**'
 
 permissions:
   contents: read
