@@ -7,7 +7,7 @@ on:
       - 'arena/**'
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
@@ -40,10 +40,14 @@ jobs:
       - name: Build release APK
         run: sh ./gradlew :app:assembleRelease --no-daemon --stacktrace
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: FakeGPS-next-release-apk
-          path: app/build/outputs/apk/release/app-release.apk
-          if-no-files-found: error
-          retention-days: 30
+      - name: Publish directly downloadable test APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="coordinate-entry-build-${GITHUB_RUN_NUMBER}"
+          gh release create "$TAG" app/build/outputs/apk/release/app-release.apk \
+            --target "$GITHUB_SHA" \
+            --title "Coordinate entry test build ${GITHUB_RUN_NUMBER}" \
+            --notes "Automated test APK containing manual latitude/longitude entry. Not a formal version release." \
+            --prerelease
