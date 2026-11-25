@@ -86,11 +86,8 @@ android {
         compose = true
         buildConfig = true
     }
-    // 16 KB page size（Android 16+）要求 native 库按 16 KB 对齐。真机 Android 17 实测会弹
-    // 「此应用不符合 16 KB 对齐要求」（libandroidx.graphics.path.so 未对齐）。
-    // useLegacyPackaging=false → .so 以未压缩方式存储，交给 zipalign 处理对齐。
-    // 注：AGP 需 ≥ 8.5.1 才会自动使用 `zipalign -P 16`；本工程是 8.2.2，
-    //     这一步只把打包方式摆正，彻底消除告警还需升级 AGP。
+    // 16 KB page size（Android 15+/16+）要求 native 库按 16 KB 对齐。
+    // useLegacyPackaging=false → .so 以未压缩方式存储，AGP 8.5.1+ 会通过 zipalign -P 16 对齐。
     packaging {
         resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
         jniLibs { useLegacyPackaging = false }

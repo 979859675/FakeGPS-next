@@ -168,6 +168,12 @@ fun SearchLocationDialog(
     val isSearching by mapViewModel.isSearching.collectAsState()
 
     var textInput by remember { mutableStateOf(searchQuery) }
+    var manualLatitude by remember { mutableStateOf("") }
+    var manualLongitude by remember { mutableStateOf("") }
+    val parsedLatitude = manualLatitude.trim().toDoubleOrNull()
+    val parsedLongitude = manualLongitude.trim().toDoubleOrNull()
+    val manualCoordinatesValid = parsedLatitude?.let { it in -90.0..90.0 } == true &&
+        parsedLongitude?.let { it in -180.0..180.0 } == true
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -244,6 +250,70 @@ fun SearchLocationDialog(
                     }
                 }
             )
+
+            // Manual coordinate entry, independent of online place search.
+            Text(
+                "手动输入经纬度（WGS-84）",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextField(
+                    value = manualLatitude,
+                    onValueChange = { manualLatitude = it },
+                    modifier = Modifier.weight(1f),
+                    label = { Text("纬度") },
+                    placeholder = { Text("-90 ～ 90") },
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyMedium,
+                    shape = AppShapes.panel,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
+                )
+                TextField(
+                    value = manualLongitude,
+                    onValueChange = { manualLongitude = it },
+                    modifier = Modifier.weight(1f),
+                    label = { Text("经度") },
+                    placeholder = { Text("-180 ～ 180") },
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyMedium,
+                    shape = AppShapes.panel,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
+                )
+            }
+            Button(
+                onClick = {
+                    val lat = parsedLatitude ?: return@Button
+                    val lon = parsedLongitude ?: return@Button
+                    onSelectLocation(lat, lon, "手动输入坐标")
+                },
+                enabled = manualCoordinatesValid,
+                modifier = Modifier.fillMaxWidth(),
+                shape = AppShapes.panel
+            ) {
+                Text("定位到输入坐标")
+            }
+            if ((manualLatitude.isNotBlank() || manualLongitude.isNotBlank()) && !manualCoordinatesValid) {
+                Text(
+                    "请输入有效坐标：纬度 -90～90，经度 -180～180",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
 
             // Quick Popular Shortcut Chips
             Text(
